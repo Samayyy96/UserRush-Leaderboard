@@ -126,6 +126,74 @@ app.get('/leaderboard', async (req, res) => {
   }
 });
 
+
+app.post('/submit-project', async (req, res) => {
+  try {
+    const { rollNo, gameLink } = req.body;
+
+    if (!rollNo || !gameLink) {
+      return res.status(400).json({
+        error: 'Missing fields'
+      });
+    }
+
+    const { error } = await supabase
+      .from('projects')
+      .insert([
+        {
+          roll_no: rollNo,
+          game_link: gameLink
+        }
+      ]);
+
+    if (error) {
+      return res.status(500).json(error);
+    }
+
+    res.json({
+      message: 'Project submitted successfully'
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      error: err.message
+    });
+  }
+});
+
+
+app.get('/projects', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .order('roll_no', { ascending: true });
+
+    if (error) {
+      return res.status(500).json(error);
+    }
+
+    res.json(data);
+
+  } catch (err) {
+    res.status(500).json({
+      error: err.message
+    });
+  }
+});
+
+
+const data = await response.json();
+console.log(response.status);
+console.log(data);
+
+if (!response.ok) {
+  const err = await response.json();
+  alert(err.error);
+  return;
+}
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log( ` Backend Server initialized on port ${PORT}`);
