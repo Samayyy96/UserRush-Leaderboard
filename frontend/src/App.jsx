@@ -1,12 +1,16 @@
-import Leaderboard from './Leaderboard'
-
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Leaderboard from "./Leaderboard";
+import Projects from "./pages/Projects";
 
 function App() {
   return (
-    <>
-      <Leaderboard currentPlayerId="GDG-Player-15" />
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Leaderboard />} />
+        <Route path="/projects" element={<Projects />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

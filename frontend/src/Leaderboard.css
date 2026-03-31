@@ -206,3 +206,42 @@
   margin: 0.5rem 0 1rem 0;
   opacity: 0.5;
 }
+
+.leaderboard-header-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.projects-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: var(--accent);
+  color: white;
+  text-decoration: none;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: 0 0 12px var(--accent-glow);
+  transition: all 0.25s ease;
+}
+
+.projects-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px var(--accent-glow);
+}
+
+@media (max-width: 640px) {
+  .projects-btn {
+    top: 12px;
+    right: 12px;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.8rem;
+    border-radius: 10px;
+  }
+}

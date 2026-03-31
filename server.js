@@ -170,28 +170,24 @@ app.get('/projects', async (req, res) => {
       .order('roll_no', { ascending: true });
 
     if (error) {
-      return res.status(500).json(error);
+      console.error("Projects fetch error:", error);
+
+      return res.status(500).json({
+        error: error.message
+      });
     }
 
     res.json(data);
 
   } catch (err) {
+    console.error("Projects route crash:", err);
+
     res.status(500).json({
       error: err.message
     });
   }
 });
 
-
-const data = await response.json();
-console.log(response.status);
-console.log(data);
-
-if (!response.ok) {
-  const err = await response.json();
-  alert(err.error);
-  return;
-}
 
 
 const PORT = process.env.PORT || 3000;

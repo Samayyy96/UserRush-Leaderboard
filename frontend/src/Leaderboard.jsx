@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Medal, Award, Activity } from "lucide-react";
+import { Link } from "react-router-dom";
 import "./Leaderboard.css";
 
 const Leaderboard = () => {
@@ -35,9 +36,7 @@ const Leaderboard = () => {
 
   useEffect(() => {
     fetchLeaderboard();
-
     const interval = setInterval(fetchLeaderboard, 5000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -64,54 +63,60 @@ const Leaderboard = () => {
   }
 
   return (
-    <div className="leaderboard-container">
-      <div className="leaderboard-header">
-        <h1>
-          Global <span>Rankings</span>
-        </h1>
-        <p>Top 10 by registered emails</p>
-      </div>
+    <>
+      <Link to="/projects" className="projects-btn">
+        View All Projects
+      </Link>
 
-      {error && <p className="error-text">{error}</p>}
+      <div className="leaderboard-container">
+        <div className="leaderboard-header">
+          <h1>
+            UserRush <span>Rankings</span>
+          </h1>
+          <p>Top 10 by registered users</p>
+        </div>
 
-      <ul className="leaderboard-list">
-        <AnimatePresence>
-          {leaderboard.map((player, index) => (
-            <motion.li
-              key={player.gameId}
-              layout
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -15 }}
-              transition={{
-                layout: { type: "spring", stiffness: 300, damping: 25 },
-                opacity: { duration: 0.2 },
-              }}
-              className={`player-row ${index < 3 ? "top-three" : ""}`}
-            >
-              <div className="player-rank">{getRankIcon(index)}</div>
+        {error && <p className="error-text">{error}</p>}
 
-              <div className="player-info">
-                <span className="player-id">{player.gameId}</span>
+        <ul className="leaderboard-list">
+          <AnimatePresence>
+            {leaderboard.map((player, index) => (
+              <motion.li
+                key={player.gameId}
+                layout
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -15 }}
+                transition={{
+                  layout: { type: "spring", stiffness: 300, damping: 25 },
+                  opacity: { duration: 0.2 },
+                }}
+                className={`player-row ${index < 3 ? "top-three" : ""}`}
+              >
+                <div className="player-rank">{getRankIcon(index)}</div>
 
-                <div className="email-list">
-                  {player.emails?.map((email) => (
-                    <span key={email} className="email-pill">
-                      {email}
-                    </span>
-                  ))}
+                <div className="player-info">
+                  <span className="player-id">{player.gameId}</span>
+
+                  <div className="email-list">
+                    {player.emails?.map((email) => (
+                      <span key={email} className="email-pill">
+                        {email}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div className="player-score">
-                <span className="score-value">{player.users}</span>
-                <span className="score-label">emails</span>
-              </div>
-            </motion.li>
-          ))}
-        </AnimatePresence>
-      </ul>
-    </div>
+                <div className="player-score">
+                  <span className="score-value">{player.users}</span>
+                  <span className="score-label">users</span>
+                </div>
+              </motion.li>
+            ))}
+          </AnimatePresence>
+        </ul>
+      </div>
+    </>
   );
 };
 
