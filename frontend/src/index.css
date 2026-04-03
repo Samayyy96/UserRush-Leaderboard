@@ -19,13 +19,9 @@
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  justify-content: center;
   min-width: 320px;
   min-height: 100vh;
   background-color: var(--bg-primary);
-  /* A beautiful cosmic gradient */
   background-image: 
     radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
     radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.1) 0%, transparent 50%);
@@ -38,9 +34,7 @@ body {
 
 #root {
   width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
 }

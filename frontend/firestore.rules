@@ -1,0 +1,25 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /projects/{project} {
+      // Anyone can read the submitted projects gallery
+      allow read: if true;
+      
+      // A user can create a project only if:
+      // 1. They are authenticated.
+      // 2. The UID being submitted matches their auth UID.
+      // 3. They don't already have a project.
+      // Because we can't easily check 'if exists()' across queries seamlessly in simple rules without knowing doc ID, 
+      // a common pattern is to make the Document ID equal to the UID. 
+      // Then we can just check: allow create: if request.auth != null && !exists(/databases/$(database)/documents/projects/$(request.auth.uid));
+      // Alternatively, we use where('uid', '==', request.auth.uid) in frontend and enforce rule that new doc's uid == request.auth.uid
+      
+      // To strictly enforce 1 submission per UID, using the user's UID as the document ID is the easiest and most secure method.
+      // We'll enforce that the document ID being created/updated matches the requesting user's UID.
+      // This naturally restricts them to 1 document because creating another with the same ID just overwrites it (which is handled by `update`).
+      
+      allow write: if request.auth != null && request.auth.uid == project;
+    }
+  }
+}
