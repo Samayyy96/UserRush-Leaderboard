@@ -14,7 +14,14 @@ const Leaderboard = () => {
       const response = await fetch("https://gameforge-leaderboard.onrender.com/leaderboard");
       if (!response.ok) throw new Error("Failed to fetch leaderboard");
       const data = await response.json();
-      if (data?.leaderboard) setLeaderboard(data.leaderboard.slice(0, 10));
+      if (data?.leaderboard) {
+        const validPrefixes = ['LCS', 'LCI', 'LIT', 'LCB'];
+        const filteredBoard = data.leaderboard.filter(player => {
+          const id = String(player.gameId || "").toUpperCase();
+          return id.length === 10 && validPrefixes.some(prefix => id.startsWith(prefix));
+        });
+        setLeaderboard(filteredBoard.slice(0, 10));
+      }
       setError(null);
       setSlowApi(false);
     } catch (err) {
