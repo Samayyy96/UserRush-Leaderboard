@@ -22,7 +22,10 @@ const ProjectCard = memo(({ project, isOwner }) => {
       </div>
 
       <div className="card-body">
-        <h3 className="project-title">{title}</h3>
+        <h3 className="project-title">
+          <span className={`status-dot ${project.active === true || project.active === "true" ? "active" : "inactive"}`}></span>
+          {title}
+        </h3>
         <p className="project-author">by {author}</p>
       </div>
 
@@ -47,6 +50,7 @@ const Projects = () => {
   const [projectTitle, setProjectTitle] = useState("");
   const [gameLink, setGameLink]     = useState("");
   const [search, setSearch]         = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // Realtime subscription
   useEffect(() => {
@@ -79,16 +83,24 @@ const Projects = () => {
     }
   }, [userSubmission]);
 
-  // Filter by search query
+  // Filter by search query and status filter
   const filtered = useMemo(() => {
+    let result = projects;
+    
+    if (statusFilter === "active") {
+      result = result.filter(p => p.active === true || p.active === "true");
+    } else if (statusFilter === "inactive") {
+      result = result.filter(p => p.active !== true && p.active !== "true");
+    }
+
     const q = search.trim().toLowerCase();
-    if (!q) return projects;
-    return projects.filter((p) => {
+    if (!q) return result;
+    return result.filter((p) => {
       const title  = (p.projectTitle || p.roll_no || "").toLowerCase();
       const author = (p.displayName || "").toLowerCase();
       return title.includes(q) || author.includes(q);
     });
-  }, [projects, search]);
+  }, [projects, search, statusFilter]);
 
   const openForm = useCallback(() => {
     if (!user) return alert("You must be logged in to submit a project.");
@@ -102,14 +114,21 @@ const Projects = () => {
 
     try {
       setSubmitting(true);
-      await setDoc(doc(db, "projects", user.uid), {
+      const dataToSave = {
         uid:          user.uid,
         displayName:  user.displayName,
         email:        user.email,
         projectTitle: projectTitle.trim(),
         gameLink:     gameLink.trim(),
         timestamp:    serverTimestamp(),
-      }, { merge: true });
+      };
+      
+      // Only set the default 'active' field if it's a completely new project
+      if (!userSubmission) {
+        dataToSave.active = false;
+      }
+
+      await setDoc(doc(db, "projects", user.uid), dataToSave, { merge: true });
 
       setShowForm(false);
     } catch (err) {
@@ -118,7 +137,7 @@ const Projects = () => {
     } finally {
       setSubmitting(false);
     }
-  }, [projectTitle, gameLink, user]);
+  }, [projectTitle, gameLink, user, userSubmission]);
 
   return (
     <div className="projects-page">
@@ -149,6 +168,15 @@ const Projects = () => {
                 <button className="search-clear" onClick={() => setSearch("")}>✕</button>
               )}
             </div>
+            <select 
+              className="status-filter"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">All Projects</option>
+              <option value="active">🟢 Active</option>
+              <option value="inactive">🔴 Inactive</option>
+            </select>
             <p className="projects-count">
               {loading ? "Loading…" : (
                 <><strong>{filtered.length}</strong> of {projects.length} project{projects.length !== 1 ? "s" : ""}</>

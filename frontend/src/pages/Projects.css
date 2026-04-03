@@ -209,6 +209,35 @@
   color: #94a3b8;
 }
 
+.status-filter {
+  padding: 0.55rem 2rem 0.55rem 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  color: #f1f5f9;
+  font-size: 0.875rem;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 1rem;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.status-filter:focus {
+  outline: none;
+  border-color: rgba(139, 92, 246, 0.45);
+  background: rgba(139, 92, 246, 0.04);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.08);
+}
+
+.status-filter option {
+  background: #0f1117;
+  color: #f1f5f9;
+}
+
 .projects-count {
   font-size: 0.825rem;
   color: #475569;
@@ -330,6 +359,26 @@
   margin: 0 0 0.35rem;
   line-height: 1.35;
   word-break: break-word;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.45rem;
+  vertical-align: middle;
+  transform: translateY(-1px);
+}
+
+.status-dot.active {
+  background-color: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+}
+
+.status-dot.inactive {
+  background-color: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
 }
 
 .project-author {

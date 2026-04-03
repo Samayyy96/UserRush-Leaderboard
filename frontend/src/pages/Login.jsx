@@ -13,6 +13,16 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // Generate random particles securely wrapped in useMemo preventing intense continuous array recreation on component redraws
+  const particles = useMemo(() => Array.from({ length: 20 }).map((_, i) => ({
+    id: i,
+    size: Math.random() * 6 + 2,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    duration: Math.random() * 20 + 10,
+    delay: Math.random() * 5,
+  })), []);
+
   // If user is already logged in, redirect away from login page
   if (!loading && user) {
     return <Navigate to="/" replace />;
@@ -51,15 +61,6 @@ const Login = () => {
     }
   };
 
-  // Generate random particles securely wrapped in useMemo preventing intense continuous array recreation on component redraws
-  const particles = useMemo(() => Array.from({ length: 20 }).map((_, i) => ({
-    id: i,
-    size: Math.random() * 6 + 2,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    duration: Math.random() * 20 + 10,
-    delay: Math.random() * 5,
-  })), []);
 
   return (
     <div className={styles.container}>
