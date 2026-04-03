@@ -13,6 +13,7 @@ const ProjectCard = memo(({ project, isOwner }) => {
   const formattedLink = link.startsWith("http") ? link : `https://${link}`;
   const title = project.projectTitle || project.roll_no || "Untitled Project";
   const author = project.displayName || "Unknown Creator";
+  const rollNo = project.email ? project.email.split('@')[0].toUpperCase() : "";
 
   return (
     <div className={`project-card ${isOwner ? "owner-card" : ""}`}>
@@ -26,7 +27,7 @@ const ProjectCard = memo(({ project, isOwner }) => {
           <span className={`status-dot ${project.active === true || project.active === "true" ? "active" : "inactive"}`}></span>
           {title}
         </h3>
-        <p className="project-author">by {author}</p>
+        <p className="project-author">by {author}{rollNo ? ` (${rollNo})` : ""}</p>
       </div>
 
       <div className="card-footer">
@@ -98,7 +99,8 @@ const Projects = () => {
     return result.filter((p) => {
       const title  = (p.projectTitle || p.roll_no || "").toLowerCase();
       const author = (p.displayName || "").toLowerCase();
-      return title.includes(q) || author.includes(q);
+      const emailRollNo = (p.email ? p.email.split('@')[0] : "").toLowerCase();
+      return title.includes(q) || author.includes(q) || emailRollNo.includes(q);
     });
   }, [projects, search, statusFilter]);
 
