@@ -1,0 +1,206 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  /* Profile on left, brand on right */
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 2rem;
+  background: rgba(15, 12, 41, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  color: white;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.logoArea {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.brandTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(to right, #ffffff, #a777e3);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: opacity 0.3s ease;
+}
+
+.brandTitle:hover {
+  opacity: 0.8;
+}
+
+/* Nav back link (on projects page) */
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #c4b5fd;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.navLink:hover {
+  color: #fff;
+}
+
+.navArrow {
+  font-size: 1rem;
+  transition: transform 0.2s ease;
+}
+
+.navLink:hover .navArrow {
+  transform: translateX(-3px);
+}
+
+/* Secondary nav link (Gallery on leaderboard page) */
+.navLinkSecondary {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #7c6fad;
+  text-decoration: none;
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.06);
+  letter-spacing: 0.01em;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+
+.navLinkSecondary:hover {
+  color: #a78bfa;
+  background: rgba(139, 92, 246, 0.14);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.userProfileWrapper {
+  position: relative;
+}
+
+.profileTrigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.profileTrigger:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(167, 119, 227, 0.5);
+  box-shadow: 0 0 10px rgba(167, 119, 227, 0.2);
+}
+
+.userName {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #e0e0e0;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(167, 119, 227, 0.5);
+}
+
+.avatarFallback {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6e8efb, #a777e3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 10px);
+  /* open left-aligned to match profile position */
+  left: 0;
+  right: auto;
+  width: 250px;
+  background: rgba(26, 26, 46, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  animation: slideDown 0.2s ease-out;
+  z-index: 1001;
+}
+
+.dropdownHeader {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 0.5rem;
+}
+
+.dropdownName {
+  font-weight: 600;
+  font-size: 1rem;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.dropdownEmail {
+  font-size: 0.8rem;
+  color: #a0a0b0;
+  word-break: break-all;
+}
+
+.logoutBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: #ff6b6b;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  text-align: left;
+}
+
+.logoutBtn:hover {
+  background: rgba(255, 107, 107, 0.1);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .userName {
+    display: none;
+  }
+}
