@@ -35,6 +35,82 @@ const supabase = createClient(
 // Allowed email validation Regex
 const emailRegex = /@iiitl\.ac\.in$/;
 
+// Admin emails allowed to whitelist
+const ADMIN_EMAILS = [
+  'admin@iiitl.ac.in',
+  'lcs2024016@iiitl.ac.in',
+  'lcs2024013@iiitl.ac.in',
+  'lcs2024005@iiitl.ac.in',
+];
+
+// Admin Middleware
+const verifyAdmin = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Missing or invalid authorization header.' });
+  }
+
+  const idToken = authHeader.split('Bearer ')[1];
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const email = decodedToken.email;
+    
+    if (!email || !ADMIN_EMAILS.includes(email.toLowerCase())) {
+      return res.status(403).json({ error: 'Forbidden: Admin access required.' });
+    }
+    req.user = decodedToken;
+    next();
+  } catch (error) {
+    console.error("Admin verification failed:", error);
+    return res.status(401).json({ error: 'Invalid authentication token.' });
+  }
+};
+
+// Endpoint: Get Whitelisted Domains
+app.get('/admin/domains', verifyAdmin, async (req, res) => {
+  try {
+    const projectConfig = await admin.auth().projectConfigManager().getProjectConfig();
+    return res.status(200).json({ domains: projectConfig.authorizedDomains || [] });
+  } catch (error) {
+    console.error("Failed to fetch project config:", error);
+    return res.status(500).json({ error: 'Failed to fetch authorized domains.' });
+  }
+});
+
+// Endpoint: Add Whitelisted Domain
+app.post('/admin/whitelist', verifyAdmin, async (req, res) => {
+  try {
+    let { domain } = req.body;
+    if (!domain || typeof domain !== 'string') {
+      return res.status(400).json({ error: 'A valid domain string is required.' });
+    }
+
+    // Clean the domain (remove http/https and trailing slashes)
+    domain = domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+    
+    const projectConfig = await admin.auth().projectConfigManager().getProjectConfig();
+    const currentDomains = projectConfig.authorizedDomains || [];
+
+    if (currentDomains.includes(domain)) {
+      return res.status(400).json({ error: 'Domain is already whitelisted.' });
+    }
+
+    const updatedDomains = [...currentDomains, domain];
+
+    await admin.auth().projectConfigManager().updateProjectConfig({
+      authorizedDomains: updatedDomains
+    });
+
+    return res.status(200).json({ 
+      message: `Successfully whitelisted ${domain}`,
+      domains: updatedDomains 
+    });
+  } catch (error) {
+    console.error("Failed to update project config:", error);
+    return res.status(500).json({ error: 'Failed to whitelist domain.' });
+  }
+});
+
 // Healthcheck
 app.get('/', (req, res) => {
   res.send('Game User Tracking API is Running');
