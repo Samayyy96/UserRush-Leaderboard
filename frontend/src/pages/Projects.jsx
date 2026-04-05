@@ -147,7 +147,7 @@ const Projects = () => {
       {/* ── Hero ── */}
       <section className="projects-hero">
         <div className="hero-badge">🎮 IIITL Creators</div>
-        <h1>Student <span className="gradient-text">Game Gallery</span></h1>
+        <h1>UserRush <span className="gradient-text">Game Gallery</span></h1>
         <p>Browse and play games built by IIITL students. Submit your own to join the gallery.</p>
       </section>
 
