@@ -4,6 +4,7 @@ import { store } from './store/store';
 import Leaderboard from "./Leaderboard";
 import Projects from "./pages/Projects";
 import Login from "./pages/Login";
+import Admin from "./pages/Admin";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
 import AuthListener from "./components/AuthListener";
@@ -29,6 +30,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Projects />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <Admin />
                 </ProtectedRoute>
               }
             />

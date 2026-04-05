@@ -15,6 +15,13 @@ const Header = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const isProjectsPage = location.pathname === '/projects';
 
+  const ADMIN_EMAILS = [
+    'admin@iiitl.ac.in',
+    'lcs2023023@iiitl.ac.in',
+    'lit2023026@iiitl.ac.in',
+  ];
+  const isAdmin = user && user.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
+
   if (!user) return null;
 
   const handleLogout = async () => {
@@ -38,6 +45,11 @@ const Header = () => {
         ) : (
           <Link to="/projects" className={styles.navLink}>
             View Projects <span className={styles.navArrow} style={{ transform: 'rotate(180deg)', display: 'inline-block' }}>←</span>
+          </Link>
+        )}
+        {isAdmin && (
+          <Link to="/admin" className={styles.navLink} style={{ marginLeft: '1rem', color: '#818cf8', fontWeight: 600 }}>
+            <span style={{ marginRight: '0.3rem' }}>🛡️</span> Admin Panel
           </Link>
         )}
       </div>
