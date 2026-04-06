@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+simport React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { ShieldAlert, Plus, CheckCircle, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { auth } from '../firebase';
 import './Admin.css';
 
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://gameforge-leaderboard.onrender.com/';
 
 const Admin = () => {
   const { user } = useSelector((state) => state.auth);
