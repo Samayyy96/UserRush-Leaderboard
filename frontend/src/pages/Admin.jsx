@@ -4,14 +4,19 @@ import { ShieldAlert, Plus, CheckCircle, AlertTriangle, ShieldCheck } from 'luci
 import { auth } from '../firebase';
 import './Admin.css';
 
-const API_URL = 'https://gameforge-leaderboard.onrender.com';
+const API_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:3000' 
+  : 'https://gameforge-leaderboard.onrender.com';
 
 const Admin = () => {
   const { user } = useSelector((state) => state.auth);
   const [domains, setDomains] = useState([]);
+  const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [gamesLoading, setGamesLoading] = useState(false);
   const [domainInput, setDomainInput] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [actionLoading, setActionLoading] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -42,9 +47,71 @@ const Admin = () => {
     }
   };
 
+  const fetchGames = async () => {
+    try {
+      setGamesLoading(true);
+      setError('');
+      if (!auth.currentUser) throw new Error("No authenticated user.");
+
+      const token = await auth.currentUser.getIdToken();
+      const response = await fetch(`${API_URL}/admin/games`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch games');
+      }
+
+      setGames(data.games || []);
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setGamesLoading(false);
+    }
+  };
+
+  const toggleGameStatus = async (gameId, currentStatus) => {
+    try {
+      setActionLoading(gameId);
+      setError('');
+      
+      const token = await auth.currentUser.getIdToken();
+      const response = await fetch(`${API_URL}/admin/game-status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          game_id: gameId, 
+          is_approved: !currentStatus 
+        })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to update status');
+      }
+
+      setGames(prev => prev.map(g => 
+        g.game_id === gameId ? { ...g, is_approved: !currentStatus } : g
+      ));
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchDomains();
+      fetchGames();
     }
   }, [user]);
 
@@ -157,6 +224,46 @@ const Admin = () => {
             </div>
           ) : (
             <div className="admin-empty">No authorized domains found.</div>
+          )}
+        </div>
+
+        <div className="admin-card">
+          <div className="card-header">
+            <h2>Leaderboard Management</h2>
+            <div className="domain-count">{games.length} games</div>
+          </div>
+          <p className="card-subtext">Approve or disapprove games to control their visibility on the leaderboard.</p>
+
+          {gamesLoading ? (
+            <div className="admin-loading">
+              <div className="spinner"></div>
+              <span>Loading games...</span>
+            </div>
+          ) : games.length > 0 ? (
+            <div className="game-list">
+              <div className="game-list-header">
+                <span>Game ID</span>
+                <span>Status</span>
+                <span>Action</span>
+              </div>
+              {games.map((game) => (
+                <div key={game.game_id} className="game-item">
+                  <span className="game-name">{game.game_id}</span>
+                  <span className={`game-status-badge ${game.is_approved ? 'approved' : 'pending'}`}>
+                    {game.is_approved ? 'Approved' : 'Hidden'}
+                  </span>
+                  <button 
+                    className={`btn-toggle ${game.is_approved ? 'btn-revoke' : 'btn-approve'}`}
+                    onClick={() => toggleGameStatus(game.game_id, game.is_approved)}
+                    disabled={actionLoading === game.game_id}
+                  >
+                    {actionLoading === game.game_id ? '...' : (game.is_approved ? 'Hide' : 'Show')}
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="admin-empty">No tracked games found in the system.</div>
           )}
         </div>
       </div>

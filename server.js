@@ -153,6 +153,100 @@ app.post('/admin/whitelist', verifyAdmin, async (req, res) => {
   }
 });
 
+// Endpoint: Get all games for approval (Admin only)
+app.get('/admin/games', verifyAdmin, async (req, res) => {
+  try {
+    // 1. Get all submitted projects and their approval status
+    const { data: projectsData, error: projError } = await supabase
+      .from('projects')
+      .select('roll_no, is_approved');
+    if (projError) throw projError;
+
+    // 2. Get all games that have been played (from game_users)
+    const { data: usersData, error: usersError } = await supabase
+      .from('game_users')
+      .select('game_id');
+    if (usersError) throw usersError;
+
+    // 3. Combine them so the Admin sees EVERYTHING
+    const gameMap = {};
+
+    // Add submitted projects first
+    (projectsData || []).forEach(p => {
+      gameMap[p.roll_no] = !!p.is_approved;
+    });
+
+    // Add played games (default to unapproved if they aren't in the projects table yet)
+    (usersData || []).forEach(u => {
+      if (gameMap[u.game_id] === undefined) {
+        gameMap[u.game_id] = false;
+      }
+    });
+
+    // Convert map to array for the frontend
+    const result = Object.keys(gameMap).map(id => ({
+      game_id: id,
+      is_approved: gameMap[id]
+    }));
+
+    return res.status(200).json({ games: result });
+  } catch (error) {
+    console.error('Failed to fetch games for approval:', error);
+    return res.status(500).json({ error: 'Failed to fetch games for approval.' });
+  }
+});
+
+// Endpoint: Update game approval status using existing 'projects' table
+app.post('/admin/game-status', verifyAdmin, async (req, res) => {
+  try {
+    const { game_id, is_approved } = req.body;
+    if (!game_id) return res.status(400).json({ error: 'game_id is required.' });
+
+    // 1. Check if the project already exists in the table
+    const { data: existing, error: fetchError } = await supabase
+      .from('projects')
+      .select('roll_no')
+      .eq('roll_no', game_id)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('Fetch Error:', fetchError);
+      throw fetchError;
+    }
+
+    let dbError;
+
+    if (existing) {
+      // 2. If it exists, update it
+      const { error: updateError } = await supabase
+        .from('projects')
+        .update({ is_approved })
+        .eq('roll_no', game_id);
+      dbError = updateError;
+    } else {
+      // 3. If it doesn't exist, insert it
+      // Note: We provide a default or dummy game_link since that column likely exists and might be required
+      const { error: insertError } = await supabase
+        .from('projects')
+        .insert([{ roll_no: game_id, is_approved, game_link: 'Approved via Admin' }]);
+      dbError = insertError;
+    }
+
+    if (dbError) {
+      console.error('Database Error:', dbError);
+      throw dbError;
+    }
+
+    return res.status(200).json({ message: `Status updated for ${game_id}`, is_approved });
+  } catch (error) {
+    console.error('Failed to update game status:', error);
+    return res.status(500).json({ 
+      error: 'Failed to update status.',
+      details: error.message 
+    });
+  }
+});
+
 // Healthcheck
 app.get('/', (req, res) => {
   res.send('Game User Tracking API is Running');
@@ -215,23 +309,36 @@ app.post('/track-user', async (req, res) => {
 // Endpoint: Get Leaderboard
 app.get('/leaderboard', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    // 1. Fetch ONLY approved roll numbers from the projects table
+    const { data: approvedProjects, error: projError } = await supabase
+      .from('projects')
+      .select('roll_no')
+      .eq('is_approved', true); // STRICT CHECK
+
+    if (projError) throw projError;
+
+    const approvedIds = (approvedProjects || []).map(p => p.roll_no);
+
+    // 2. If no games are approved yet, return an empty leaderboard immediately
+    if (approvedIds.length === 0) {
+      return res.status(200).json({ leaderboard: [] });
+    }
+
+    // 3. Fetch player counts ONLY for the approved IDs
+    const { data: userCounts, error: countError } = await supabase
       .from('game_users')
-      .select('game_id');
+      .select('game_id')
+      .in('game_id', approvedIds); // ONLY fetch if in the approved list
 
-    if (error) {
-      console.error("Leaderboard fetch error:", error);
-      return res.status(500).json({ error: 'Failed to access database.' });
-    }
+    if (countError) throw countError;
 
-    // Map-reduce count
+    // 4. Map-reduce to count the users
     const counts = {};
-    for (const row of data) {
-      const gid = row.game_id;
-      counts[gid] = (counts[gid] || 0) + 1;
-    }
+    (userCounts || []).forEach(row => {
+      counts[row.game_id] = (counts[row.game_id] || 0) + 1;
+    });
 
-    // Convert into sorted array for UI
+    // 5. Convert into sorted array for UI
     const leaderboard = Object.keys(counts).map(gameId => ({
       gameId,
       users: counts[gameId]
@@ -239,11 +346,10 @@ app.get('/leaderboard', async (req, res) => {
 
     return res.status(200).json({ leaderboard });
   } catch (err) {
-    console.error("Unexpected error:", err);
+    console.error("Leaderboard error:", err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 
 app.post('/submit-project', async (req, res) => {
   try {
@@ -279,17 +385,16 @@ app.post('/submit-project', async (req, res) => {
   }
 });
 
-
 app.get('/projects', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('projects')
       .select('*')
+      .eq('is_approved', true) // <-- This forces it to only fetch approved games
       .order('roll_no', { ascending: true });
 
     if (error) {
       console.error("Projects fetch error:", error);
-
       return res.status(500).json({
         error: error.message
       });
@@ -299,16 +404,13 @@ app.get('/projects', async (req, res) => {
 
   } catch (err) {
     console.error("Projects route crash:", err);
-
     res.status(500).json({
       error: err.message
     });
   }
 });
 
-
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(` Backend Server initialized on port ${PORT}`);
+  console.log(`Backend Server initialized on port ${PORT}`);
 });
