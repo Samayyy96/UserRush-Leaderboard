@@ -15,7 +15,11 @@ const Leaderboard = () => {
 
   const fetchLeaderboard = async () => {
     try {
-      const response = await fetch("https://gameforge-leaderboard.onrender.com/leaderboard");
+      const API_URL = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3000' 
+        : 'https://gameforge-leaderboard.onrender.com';
+        
+      const response = await fetch(`${API_URL}/leaderboard`);
       if (!response.ok) throw new Error("Failed to fetch leaderboard");
       const data = await response.json();
       if (data?.leaderboard) {
@@ -23,12 +27,8 @@ const Leaderboard = () => {
         data.leaderboard.forEach(p => total += (p.users || 0));
         setTotalUsers(total);
         
-        const validPrefixes = ['LCS', 'LCI', 'LIT', 'LCB'];
-        const filteredBoard = data.leaderboard.filter(player => {
-          const id = String(player.gameId || "").toUpperCase();
-          return id.length === 10 && validPrefixes.some(prefix => id.startsWith(prefix));
-        });
-        setLeaderboard(filteredBoard.slice(0, 10));
+        // Remove the hardcoded prefix/length filter and use the backend's approved list directly
+        setLeaderboard(data.leaderboard.slice(0, 10));
       }
       setError(null);
       setSlowApi(false);
