@@ -46,7 +46,7 @@ const Leaderboard = () => {
     const interval  = setInterval(fetchLeaderboard, 5000);
 
     // April 13, 2026 12:00 PM local time
-    const targetDate = new Date("2026-04-13T12:00:00");
+    const targetDate = new Date("2026-04-16T12:00:00");
     const updateTime = () => {
       const now = new Date();
       const diff = targetDate - now;
