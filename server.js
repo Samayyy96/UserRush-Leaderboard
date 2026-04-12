@@ -42,6 +42,7 @@ const ADMIN_EMAILS = [
   'lcs2024016@iiitl.ac.in',
   'lcs2024013@iiitl.ac.in',
   'lcs2024005@iiitl.ac.in',
+  'lci2023058@iiitl.ac.in',
 ];
 
 // Admin Middleware
