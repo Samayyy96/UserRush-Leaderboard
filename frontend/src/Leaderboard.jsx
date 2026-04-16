@@ -1,239 +1,144 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Trophy, Medal, Award, Lock } from "lucide-react";
+import { Trophy, Medal, Award, Lock } from "lucide-react";
 import "./Leaderboard.css";
 
-const EVENT_DEADLINE = new Date("2026-04-16T12:00:00+05:30");
+// ── Hardcoded final rankings (snapshot taken at event end) ──────────────────
+const FINAL_LEADERBOARD = [
+  { gameId: "LIT2025024", users: 97 },
+  { gameId: "LIT2025009", users: 78 },
+  { gameId: "LCB2025024", users: 69 },
+  { gameId: "LCI2025015", users: 68 },
+  { gameId: "LCB2025040", users: 64 },
+  { gameId: "LCI2025040", users: 62 },
+  { gameId: "LCB2025010", users: 61 },
+  { gameId: "LCI2025013", users: 61 },
+  { gameId: "LCI2025002", users: 52 },
+  { gameId: "LCI2025018", users: 51 },
+  { gameId: "LCI2025023", users: 38 },
+  { gameId: "LCS2025059", users: 34 },
+  { gameId: "LCB2025006", users: 27 },
+  { gameId: "LCI2025011", users: 25 },
+];
 
 const Leaderboard = () => {
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [slowApi, setSlowApi]         = useState(false);
-  const [error, setError]             = useState(null);
-  const [totalUsers, setTotalUsers]   = useState(0);
-  const [eventEnded, setEventEnded]   = useState(Date.now() >= EVENT_DEADLINE.getTime());
-
-  // Countdown State
-  const [timeLeft, setTimeLeft] = useState("");
-  const intervalRef = useRef(null);
-
-  const fetchLeaderboard = async () => {
-    try {
-      const API_URL = window.location.hostname === 'localhost' 
-        ? 'http://localhost:3000' 
-        : 'https://gameforge-leaderboard.onrender.com';
-        
-      const response = await fetch(`${API_URL}/leaderboard`);
-      if (!response.ok) throw new Error("Failed to fetch leaderboard");
-      const data = await response.json();
-      if (data?.leaderboard) {
-        let total = 0;
-        data.leaderboard.forEach(p => total += (p.users || 0));
-        setTotalUsers(total);
-        
-        // Remove the hardcoded prefix/length filter and use the backend's approved list directly
-        setLeaderboard(data.leaderboard.slice(0, 10));
-      }
-      setError(null);
-      setSlowApi(false);
-    } catch (err) {
-      console.error("Leaderboard fetch error:", err);
-      setError("Could not reach the server.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLeaderboard();
-    const slowTimer = setTimeout(() => setSlowApi(true), 6000);
-
-    // Only keep polling while the event is still active
-    if (!eventEnded) {
-      intervalRef.current = setInterval(fetchLeaderboard, 5000);
-    }
-
-    const updateTime = () => {
-      const now = new Date();
-      const diff = EVENT_DEADLINE - now;
-
-      if (diff <= 0) {
-        setTimeLeft("0d 0h 0m 0s");
-        setEventEnded(true);
-        // Stop polling once event ends
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
-        }
-        return;
-      }
-
-      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const m = Math.floor((diff / 1000 / 60) % 60);
-      const s = Math.floor((diff / 1000) % 60);
-      setTimeLeft(`${d}d ${h}h ${m}m ${s}s`);
-    };
-    
-    updateTime();
-    const clockInterval = setInterval(updateTime, 1000);
-
-    return () => { 
-      if (intervalRef.current) clearInterval(intervalRef.current); 
-      clearTimeout(slowTimer); 
-      clearInterval(clockInterval); 
-    };
-  }, []);
+  const leaderboard = FINAL_LEADERBOARD;
 
   // Safe access for top 3
-  const first = leaderboard[0];
+  const first  = leaderboard[0];
   const second = leaderboard[1];
-  const third = leaderboard[2];
-  const rest = leaderboard.slice(3);
+  const third  = leaderboard[2];
+  const rest   = leaderboard.slice(3);
 
-  const formatNumber = (num) => {
-    return new Intl.NumberFormat().format(num || 0);
-  };
+  const formatNumber = (num) => new Intl.NumberFormat().format(num || 0);
 
   return (
     <div className="lb-container">
       <div className="lb-glow-bg"></div>
 
-      {loading ? (
-        <div className="lb-loading-state">
-          <div className="spinner"></div>
-          <p>Loading the arena...</p>
-        </div>
-      ) : error ? (
-        <div className="lb-error-state">
-           <p>{error}</p>
-           <button onClick={fetchLeaderboard}>Retry</button>
-        </div>
-      ) : (
-        <div className="lb-content">
-          <h1 className="lb-main-title">UserRush Rankings</h1>
+      <div className="lb-content">
+        <h1 className="lb-main-title">UserRush Rankings</h1>
 
-
-          {/* Podiums */}
-          <div className="lb-podiums">
-            {/* Rank 2 */}
-            <motion.div 
-              className="podium-card podium-silver"
-              initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-            >
-              {second && (
-                <>
-                  <div className="avatar-wrapper is-silver"><Medal size={45} strokeWidth={1.5} color="#cbd5e1" /></div>
-                  <h3>{second.gameId}</h3>
-                  <p className="earn-points">Rank 2</p>
-                  <div className="prize">
-                    {formatNumber(second.users)}
-                  </div>
-                  <p className="prize-label">Users</p>
-                </>
-              )}
-            </motion.div>
-
-            {/* Rank 1 */}
-            <motion.div 
-              className="podium-card podium-gold"
-              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}
-            >
-              {first && (
-                <>
-                  <div className="avatar-wrapper is-first is-gold"><Trophy size={55} strokeWidth={1.5} color="#fbbf24" /></div>
-                  <h3 className="gold-name">{first.gameId}</h3>
-                  <p className="earn-points">Rank 1</p>
-                  <div className="prize is-large">
-                    {formatNumber(first.users)}
-                  </div>
-                  <p className="prize-label">Users</p>
-                </>
-              )}
-            </motion.div>
-
-            {/* Rank 3 */}
-            <motion.div 
-              className="podium-card podium-bronze"
-              initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-            >
-              {third && (
-                <>
-                  <div className="avatar-wrapper is-bronze"><Award size={45} strokeWidth={1.5} color="#d97706" /></div>
-                  <h3>{third.gameId}</h3>
-                  <p className="earn-points">Rank 3</p>
-                  <div className="prize">
-                    {formatNumber(third.users)}
-                  </div>
-                  <p className="prize-label">Users</p>
-                </>
-              )}
-            </motion.div>
-          </div>
-
-          {/* List Table */}
-          <motion.div 
-            className="lb-table-container"
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
+        {/* Podiums */}
+        <div className="lb-podiums">
+          {/* Rank 2 */}
+          <motion.div
+            className="podium-card podium-silver"
+            initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
           >
-            <div className="lb-table-header">
-              <div className="col-rank">Rank</div>
-              <div className="col-user">User name</div>
-              <div className="col-reward">Users</div>
-            </div>
-
-            <div className="lb-table-body">
-              <AnimatePresence>
-                {rest.map((player, idx) => {
-                  const rank = idx + 4;
-                  return (
-                    <motion.div 
-                      key={player.gameId}
-                      className="lb-table-row"
-                      layout
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      whileHover={{ scale: 1.01, backgroundColor: 'rgba(255,255,255,0.05)' }}
-                    >
-                      <div className="col-rank">{rank}</div>
-                      <div className="col-user">
-                        <div className="user-info" style={{ marginLeft: "10px" }}>
-                          <span className="name">{player.gameId}</span>
-                        </div>
-                      </div>
-                      <div className="col-reward">
-                        {formatNumber(player.users)}
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-            </div>
-          </motion.div>
-
-          {/* Footer Timer / Event Ended */}
-          <motion.div 
-            className={`countdown ${eventEnded ? 'countdown-ended' : ''}`}
-            style={{ marginTop: '5rem', paddingBottom: '3rem', borderTop: 'none', width: 'auto' }}
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
-          >
-            {eventEnded ? (
+            {second && (
               <>
-                <Lock size={16} className="clock-icon ended-icon" />
-                <span className="time ended-time" style={{ fontSize: '1rem' }}>🏁 Event has ended — rankings are final.</span>
-              </>
-            ) : (
-              <>
-                <Clock size={16} className="clock-icon" />
-                <span className="ends-in" style={{ fontSize: '1rem' }}>Ends in</span>
-                <span className="time" style={{ fontSize: '1.2rem' }}>{timeLeft}</span>
+                <div className="avatar-wrapper is-silver"><Medal size={45} strokeWidth={1.5} color="#cbd5e1" /></div>
+                <h3>{second.gameId}</h3>
+                <p className="earn-points">Rank 2</p>
+                <div className="prize">{formatNumber(second.users)}</div>
+                <p className="prize-label">Users</p>
               </>
             )}
           </motion.div>
 
+          {/* Rank 1 */}
+          <motion.div
+            className="podium-card podium-gold"
+            initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}
+          >
+            {first && (
+              <>
+                <div className="avatar-wrapper is-first is-gold"><Trophy size={55} strokeWidth={1.5} color="#fbbf24" /></div>
+                <h3 className="gold-name">{first.gameId}</h3>
+                <p className="earn-points">Rank 1</p>
+                <div className="prize is-large">{formatNumber(first.users)}</div>
+                <p className="prize-label">Users</p>
+              </>
+            )}
+          </motion.div>
+
+          {/* Rank 3 */}
+          <motion.div
+            className="podium-card podium-bronze"
+            initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          >
+            {third && (
+              <>
+                <div className="avatar-wrapper is-bronze"><Award size={45} strokeWidth={1.5} color="#d97706" /></div>
+                <h3>{third.gameId}</h3>
+                <p className="earn-points">Rank 3</p>
+                <div className="prize">{formatNumber(third.users)}</div>
+                <p className="prize-label">Users</p>
+              </>
+            )}
+          </motion.div>
         </div>
-      )}
+
+        {/* List Table */}
+        <motion.div
+          className="lb-table-container"
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
+        >
+          <div className="lb-table-header">
+            <div className="col-rank">Rank</div>
+            <div className="col-user">User name</div>
+            <div className="col-reward">Users</div>
+          </div>
+
+          <div className="lb-table-body">
+            <AnimatePresence>
+              {rest.map((player, idx) => {
+                const rank = idx + 4;
+                return (
+                  <motion.div
+                    key={player.gameId}
+                    className="lb-table-row"
+                    layout
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    whileHover={{ scale: 1.01, backgroundColor: 'rgba(255,255,255,0.05)' }}
+                  >
+                    <div className="col-rank">{rank}</div>
+                    <div className="col-user">
+                      <div className="user-info" style={{ marginLeft: "10px" }}>
+                        <span className="name">{player.gameId}</span>
+                      </div>
+                    </div>
+                    <div className="col-reward">{formatNumber(player.users)}</div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+
+        {/* Footer — event ended banner */}
+        <motion.div
+          className="countdown countdown-ended"
+          style={{ marginTop: '5rem', paddingBottom: '3rem', borderTop: 'none', width: 'auto' }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
+        >
+          <Lock size={16} className="clock-icon ended-icon" />
+          <span className="time ended-time" style={{ fontSize: '1rem' }}>🏁 Event has ended — rankings are final.</span>
+        </motion.div>
+      </div>
     </div>
   );
 };

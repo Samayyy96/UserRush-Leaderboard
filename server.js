@@ -267,9 +267,9 @@ app.get('/event-status', (req, res) => {
 app.post('/track-user', async (req, res) => {
   try {
     // Block tracking after event ends
-    if (isEventOver()) {
-      return res.status(403).json({ error: 'The event has ended. User tracking is no longer active.' });
-    }
+    // if (isEventOver()) {
+    //   return res.status(403).json({ error: 'The event has ended. User tracking is no longer active.' });
+    // }
 
     const { idToken, gameId } = req.body;
 
