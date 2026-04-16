@@ -403,6 +403,103 @@ body {
   color: #7d8590;
 }
 
+/* ── Event Ended State ── */
+.event-ended-banner {
+  width: 100%;
+  max-width: 700px;
+  margin: 1.5rem auto 2rem;
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.event-ended-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(239, 68, 68, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.event-ended-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 2.5rem 2rem;
+  background: rgba(30, 18, 18, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 20px;
+  box-shadow:
+    0 0 60px rgba(239, 68, 68, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.event-ended-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  margin-bottom: 1rem;
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.15);
+}
+
+.event-ended-content h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.event-ended-content p {
+  font-size: 1rem;
+  color: #d1d5db;
+  margin: 0 0 0.25rem;
+  line-height: 1.6;
+}
+
+.event-ended-subtext {
+  font-size: 0.85rem !important;
+  color: #f87171 !important;
+  font-weight: 600;
+  margin-top: 0.5rem !important;
+}
+
+.frozen-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: 20px;
+  padding: 0.4rem 1rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.countdown-ended {
+  opacity: 0.8;
+}
+
+.ended-icon {
+  color: #f87171 !important;
+}
+
+.ended-time {
+  color: #f87171 !important;
+  font-weight: 800;
+}
+
 /* Responsive Overrides */
 @media (max-width: 900px) {
   .lb-podiums {

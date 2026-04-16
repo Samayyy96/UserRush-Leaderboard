@@ -7,6 +7,8 @@ import "./Projects.css";
 const ICONS = ["🎮", "🕹️", "🚀", "⚔️", "🧩", "🎯", "🌌", "💎", "🐲", "🔥", "🏆", "🎲"];
 const getIcon = (str = "") => ICONS[str.charCodeAt(0) % ICONS.length];
 
+const EVENT_DEADLINE = new Date("2026-04-16T12:00:00+05:30");
+
 /* ─── Project Card ─── */
 const ProjectCard = memo(({ project, isOwner }) => {
   const link = project.gameLink || project.game_link || "";
@@ -52,6 +54,18 @@ const Projects = () => {
   const [gameLink, setGameLink]     = useState("");
   const [search, setSearch]         = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [eventEnded, setEventEnded] = useState(Date.now() >= EVENT_DEADLINE.getTime());
+
+  // Check event status on a timer
+  useEffect(() => {
+    const checkDeadline = () => {
+      if (Date.now() >= EVENT_DEADLINE.getTime()) {
+        setEventEnded(true);
+      }
+    };
+    const timer = setInterval(checkDeadline, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Realtime subscription
   useEffect(() => {
@@ -105,13 +119,15 @@ const Projects = () => {
   }, [projects, search, statusFilter]);
 
   const openForm = useCallback(() => {
+    if (eventEnded) return; // silently block — button is already disabled
     if (!user) return alert("You must be logged in to submit a project.");
     if (!userSubmission) { setProjectTitle(""); setGameLink(""); }
     setShowForm(true);
-  }, [user, userSubmission]);
+  }, [user, userSubmission, eventEnded]);
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    if (eventEnded) return;
     if (!projectTitle.trim() || !gameLink.trim() || !user?.uid) return;
 
     try {
@@ -139,7 +155,7 @@ const Projects = () => {
     } finally {
       setSubmitting(false);
     }
-  }, [projectTitle, gameLink, user, userSubmission]);
+  }, [projectTitle, gameLink, user, userSubmission, eventEnded]);
 
   return (
     <div className="projects-page">
@@ -185,8 +201,16 @@ const Projects = () => {
               )}
             </p>
           </div>
-          <button className="add-btn" onClick={openForm}>
-            {userSubmission ? "✏️ Edit My Game" : "+ Add My Game"}
+          <button 
+            className={`add-btn ${eventEnded ? 'add-btn-disabled' : ''}`} 
+            onClick={openForm}
+            disabled={eventEnded}
+            title={eventEnded ? "Submissions are closed — the event has ended" : ""}
+          >
+            {eventEnded 
+              ? "🔒 Submissions Closed" 
+              : userSubmission ? "✏️ Edit My Game" : "+ Add My Game"
+            }
           </button>
         </div>
 
@@ -215,7 +239,7 @@ const Projects = () => {
       </main>
 
       {/* ── Submission Modal ── */}
-      {showForm && (
+      {showForm && !eventEnded && (
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
           <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
@@ -268,6 +292,13 @@ const Projects = () => {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* ── Simple event ended footer ── */}
+      {eventEnded && (
+        <div className="projects-ended-footer">
+          🏁 Event has ended — submissions are closed.
         </div>
       )}
     </div>

@@ -33,6 +33,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY || 'placeholder'
 );
 
+// Event deadline — after this time, submissions and tracking are frozen
+const EVENT_DEADLINE = new Date('2026-04-16T12:00:00+05:30');
+
+const isEventOver = () => Date.now() >= EVENT_DEADLINE.getTime();
+
 // Allowed email validation Regex
 const emailRegex = /@iiitl\.ac\.in$/;
 
@@ -253,9 +258,19 @@ app.get('/', (req, res) => {
   res.send('Game User Tracking API is Running');
 });
 
+// Endpoint: Event status — lets frontend check without guessing
+app.get('/event-status', (req, res) => {
+  res.json({ ended: isEventOver(), deadline: EVENT_DEADLINE.toISOString() });
+});
+
 // Endpoint: Track User
 app.post('/track-user', async (req, res) => {
   try {
+    // Block tracking after event ends
+    if (isEventOver()) {
+      return res.status(403).json({ error: 'The event has ended. User tracking is no longer active.' });
+    }
+
     const { idToken, gameId } = req.body;
 
     if (!idToken || !gameId) {
@@ -354,6 +369,11 @@ app.get('/leaderboard', async (req, res) => {
 
 app.post('/submit-project', async (req, res) => {
   try {
+    // Block submissions after event ends
+    if (isEventOver()) {
+      return res.status(403).json({ error: 'The event has ended. Project submissions are no longer accepted.' });
+    }
+
     const { rollNo, gameLink } = req.body;
 
     if (!rollNo || !gameLink) {

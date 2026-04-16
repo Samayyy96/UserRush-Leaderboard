@@ -768,3 +768,29 @@
     font-size: 2rem;
   }
 }
+
+/* =============================================
+   EVENT ENDED — PROJECTS PAGE
+   ============================================= */
+.projects-ended-footer {
+  text-align: center;
+  padding: 2rem 1rem 3rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #f87171;
+  letter-spacing: 0.01em;
+}
+
+.add-btn-disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  pointer-events: auto !important;
+}
+
+.add-btn-disabled:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  transform: none !important;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+}

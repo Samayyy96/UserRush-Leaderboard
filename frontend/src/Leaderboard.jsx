@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Trophy, Medal, Award } from "lucide-react";
+import { Clock, Trophy, Medal, Award, Lock } from "lucide-react";
 import "./Leaderboard.css";
+
+const EVENT_DEADLINE = new Date("2026-04-16T12:00:00+05:30");
 
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -9,9 +11,11 @@ const Leaderboard = () => {
   const [slowApi, setSlowApi]         = useState(false);
   const [error, setError]             = useState(null);
   const [totalUsers, setTotalUsers]   = useState(0);
+  const [eventEnded, setEventEnded]   = useState(Date.now() >= EVENT_DEADLINE.getTime());
 
   // Countdown State
   const [timeLeft, setTimeLeft] = useState("");
+  const intervalRef = useRef(null);
 
   const fetchLeaderboard = async () => {
     try {
@@ -43,16 +47,24 @@ const Leaderboard = () => {
   useEffect(() => {
     fetchLeaderboard();
     const slowTimer = setTimeout(() => setSlowApi(true), 6000);
-    const interval  = setInterval(fetchLeaderboard, 5000);
 
-    // April 13, 2026 12:00 PM local time
-    const targetDate = new Date("2026-04-16T12:00:00");
+    // Only keep polling while the event is still active
+    if (!eventEnded) {
+      intervalRef.current = setInterval(fetchLeaderboard, 5000);
+    }
+
     const updateTime = () => {
       const now = new Date();
-      const diff = targetDate - now;
+      const diff = EVENT_DEADLINE - now;
 
       if (diff <= 0) {
         setTimeLeft("0d 0h 0m 0s");
+        setEventEnded(true);
+        // Stop polling once event ends
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
         return;
       }
 
@@ -66,7 +78,11 @@ const Leaderboard = () => {
     updateTime();
     const clockInterval = setInterval(updateTime, 1000);
 
-    return () => { clearInterval(interval); clearTimeout(slowTimer); clearInterval(clockInterval); };
+    return () => { 
+      if (intervalRef.current) clearInterval(intervalRef.current); 
+      clearTimeout(slowTimer); 
+      clearInterval(clockInterval); 
+    };
   }, []);
 
   // Safe access for top 3
@@ -96,6 +112,7 @@ const Leaderboard = () => {
       ) : (
         <div className="lb-content">
           <h1 className="lb-main-title">UserRush Rankings</h1>
+
 
           {/* Podiums */}
           <div className="lb-podiums">
@@ -195,15 +212,24 @@ const Leaderboard = () => {
             </div>
           </motion.div>
 
-          {/* Footer Timer */}
+          {/* Footer Timer / Event Ended */}
           <motion.div 
-            className="countdown"
+            className={`countdown ${eventEnded ? 'countdown-ended' : ''}`}
             style={{ marginTop: '5rem', paddingBottom: '3rem', borderTop: 'none', width: 'auto' }}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
           >
-            <Clock size={16} className="clock-icon" />
-            <span className="ends-in" style={{ fontSize: '1rem' }}>Ends in</span>
-            <span className="time" style={{ fontSize: '1.2rem' }}>{timeLeft}</span>
+            {eventEnded ? (
+              <>
+                <Lock size={16} className="clock-icon ended-icon" />
+                <span className="time ended-time" style={{ fontSize: '1rem' }}>🏁 Event has ended — rankings are final.</span>
+              </>
+            ) : (
+              <>
+                <Clock size={16} className="clock-icon" />
+                <span className="ends-in" style={{ fontSize: '1rem' }}>Ends in</span>
+                <span className="time" style={{ fontSize: '1.2rem' }}>{timeLeft}</span>
+              </>
+            )}
           </motion.div>
 
         </div>
